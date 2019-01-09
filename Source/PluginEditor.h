@@ -36,7 +36,10 @@ private:
 	ToggleButton cvGakken;
 	ToggleButton cvNormal;
 
+	ToggleButton hold;
+
 	void updateCVMode(Button* button);
+	void toggleHold(bool hold);
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MurpatroniAudioProcessorEditor)
 };

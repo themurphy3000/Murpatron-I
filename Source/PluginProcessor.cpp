@@ -27,8 +27,9 @@ MurpatroniAudioProcessor::MurpatroniAudioProcessor()
 {
 	gakken = new GakkenSX150(k8055);
 	midiToCV = new MidiToCV(k8055);
-	notes = 0;
+	noteOn = false;
 	midiNoteProcessor = gakken;
+	hold = false;
 }
 
 MurpatroniAudioProcessor::~MurpatroniAudioProcessor()
@@ -45,6 +46,20 @@ void MurpatroniAudioProcessor::SetMidiNoteProcessor(int id)
 	{
 		SetMidiNoteProcessor(*midiToCV);
 	}
+}
+
+void MurpatroniAudioProcessor::setHold(bool h)
+{
+	hold = h;
+	if (!hold) {
+		noteOn = false;
+		midiNoteProcessor->AllNotesOff();
+	}
+}
+
+bool MurpatroniAudioProcessor::getHold()
+{
+	return hold;
 }
 
 //==============================================================================
@@ -149,11 +164,9 @@ bool MurpatroniAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts
 
 void MurpatroniAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
-	ScopedNoDenormals noDenormals;
 	auto totalNumInputChannels = getTotalNumInputChannels();
 	auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-	MidiBuffer processedMidi;
 	int time;
 	MidiMessage m;
 
@@ -161,19 +174,19 @@ void MurpatroniAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuff
 	{
 		if (m.isNoteOn())
 		{
-			notes++;
-			uint8 newVelocity = (uint8)noteOnVelocity;
-			m = MidiMessage::noteOn(m.getChannel(), m.getNoteNumber(), newVelocity);
+			noteOn = true;;
 			midiNoteProcessor->NoteOn(m);
 		}
+
 		if (m.isNoteOff())
 		{
-			notes--;
-			midiNoteProcessor->NoteOff(m);
+			noteOn = false;
+			if (!hold)
+			{
+				midiNoteProcessor->NoteOff(m);
+			}
 		}
-		processedMidi.addEvent(m, time);
 	}
-	midiMessages.swapWith(processedMidi);
 
 	for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
 		buffer.clear(i, 0, buffer.getNumSamples());
@@ -208,6 +221,7 @@ void MurpatroniAudioProcessor::SetMidiNoteProcessor(MidiNoteProcessor& processor
 {
 	if (midiNoteProcessor) midiNoteProcessor->AllNotesOff();
 	midiNoteProcessor = &processor;
+	noteOn = false;
 }
 
 //==============================================================================

@@ -23,13 +23,15 @@ public:
 	static const int Gakken = 1;
 	static const int Normal = 2;
 	float noteOnVelocity;
-	int notes;
+	bool noteOn;
 
 	//==============================================================================
 	MurpatroniAudioProcessor();
 	~MurpatroniAudioProcessor();
 
 	void SetMidiNoteProcessor(int id);
+	void setHold(bool);
+	bool getHold();
 
 	//==============================================================================
 	void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -65,6 +67,7 @@ public:
 	void setStateInformation(const void* data, int sizeInBytes) override;
 protected:
 	MidiNoteProcessor* midiNoteProcessor;
+	bool hold;
 	void SetMidiNoteProcessor(MidiNoteProcessor& processor);
 private:
 	K8055 k8055;
