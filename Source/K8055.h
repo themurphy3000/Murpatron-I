@@ -2,6 +2,10 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+typedef int(*OPEN_DEVICE)(int);
+typedef void(*OUTPUT_ANALOG)(int, int);
+typedef void(*CLOSE)(void);
+
 class K8055
 {
 public:
@@ -14,4 +18,8 @@ public:
 	void ClearAllAnalog();
 private:
 	DynamicLibrary K8055Dll;
+	OUTPUT_ANALOG outputAnalog;
+	OPEN_DEVICE openDevice;
+	CLOSE clear;
+	CLOSE close;
 };
